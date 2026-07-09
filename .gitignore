@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# --- Spécifique au projet ---
+# Dataset brut (trop lourd, seul data/samples/ est versionné)
+data/raw/
+
+# Traces d'exécution des runs d'agents
+runs/
