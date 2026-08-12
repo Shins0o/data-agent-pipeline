@@ -1,0 +1,32 @@
+{
+  "par_agent": [
+    {
+      "agent": "01_profilage",
+      "model": "claude-haiku-4-5",
+      "input_tokens": 7172,
+      "output_tokens": 14,
+      "cache_creation_tokens": 0,
+      "cache_read_tokens": 0,
+      "total_tokens": 7186,
+      "cout_usd": 0.0
+    },
+    {
+      "agent": "01_profilage",
+      "model": "claude-sonnet-5",
+      "input_tokens": 2,
+      "output_tokens": 2668,
+      "cache_creation_tokens": 12314,
+      "cache_read_tokens": 9162,
+      "total_tokens": 24146,
+      "cout_usd": 0.059301
+    }
+  ],
+  "totaux": {
+    "input_tokens": 7174,
+    "output_tokens": 2682,
+    "cache_creation_tokens": 12314,
+    "cache_read_tokens": 9162,
+    "total_tokens": 31332,
+    "cout_usd": 0.0593
+  }
+}

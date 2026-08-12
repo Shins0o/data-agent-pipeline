@@ -1,0 +1,664 @@
+{
+  "source": "data\\samples\\games_sample.csv",
+  "modele": "claude-sonnet-5",
+  "voie": "claude-agent-sdk (abonnement)",
+  "profil_technique": {
+    "n_lignes": 500,
+    "n_colonnes": 39,
+    "colonnes": [
+      {
+        "nom": "AppID",
+        "type": "str",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 500
+      },
+      {
+        "nom": "Name",
+        "type": "str",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 447
+      },
+      {
+        "nom": "Release date",
+        "type": "str",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 9
+      },
+      {
+        "nom": "Estimated owners",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 25
+      },
+      {
+        "nom": "Peak CCU",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 3
+      },
+      {
+        "nom": "Required age",
+        "type": "float64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 97
+      },
+      {
+        "nom": "Price",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 33
+      },
+      {
+        "nom": "DiscountDLC count",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 10
+      },
+      {
+        "nom": "About the game",
+        "type": "str",
+        "taux_manquant": 0.064,
+        "n_valeurs_uniques": 468
+      },
+      {
+        "nom": "Supported languages",
+        "type": "str",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 158
+      },
+      {
+        "nom": "Full audio languages",
+        "type": "str",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 56
+      },
+      {
+        "nom": "Reviews",
+        "type": "str",
+        "taux_manquant": 0.928,
+        "n_valeurs_uniques": 36
+      },
+      {
+        "nom": "Header image",
+        "type": "str",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 500
+      },
+      {
+        "nom": "Website",
+        "type": "str",
+        "taux_manquant": 0.666,
+        "n_valeurs_uniques": 165
+      },
+      {
+        "nom": "Support url",
+        "type": "str",
+        "taux_manquant": 0.616,
+        "n_valeurs_uniques": 188
+      },
+      {
+        "nom": "Support email",
+        "type": "str",
+        "taux_manquant": 0.164,
+        "n_valeurs_uniques": 407
+      },
+      {
+        "nom": "Windows",
+        "type": "bool",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 1
+      },
+      {
+        "nom": "Mac",
+        "type": "bool",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 2
+      },
+      {
+        "nom": "Linux",
+        "type": "bool",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 2
+      },
+      {
+        "nom": "Metacritic score",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 10
+      },
+      {
+        "nom": "Metacritic url",
+        "type": "str",
+        "taux_manquant": 0.978,
+        "n_valeurs_uniques": 11
+      },
+      {
+        "nom": "User score",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 2
+      },
+      {
+        "nom": "Positive",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 130
+      },
+      {
+        "nom": "Negative",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 81
+      },
+      {
+        "nom": "Score rank",
+        "type": "float64",
+        "taux_manquant": 0.998,
+        "n_valeurs_uniques": 1
+      },
+      {
+        "nom": "Achievements",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 58
+      },
+      {
+        "nom": "Recommendations",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 78
+      },
+      {
+        "nom": "Notes",
+        "type": "str",
+        "taux_manquant": 0.828,
+        "n_valeurs_uniques": 85
+      },
+      {
+        "nom": "Average playtime forever",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 91
+      },
+      {
+        "nom": "Average playtime two weeks",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 20
+      },
+      {
+        "nom": "Median playtime forever",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 87
+      },
+      {
+        "nom": "Median playtime two weeks",
+        "type": "int64",
+        "taux_manquant": 0.0,
+        "n_valeurs_uniques": 20
+      },
+      {
+        "nom": "Developers",
+        "type": "str",
+        "taux_manquant": 0.064,
+        "n_valeurs_uniques": 460
+      },
+      {
+        "nom": "Publishers",
+        "type": "str",
+        "taux_manquant": 0.066,
+        "n_valeurs_uniques": 449
+      },
+      {
+        "nom": "Categories",
+        "type": "str",
+        "taux_manquant": 0.07,
+        "n_valeurs_uniques": 187
+      },
+      {
+        "nom": "Genres",
+        "type": "str",
+        "taux_manquant": 0.064,
+        "n_valeurs_uniques": 167
+      },
+      {
+        "nom": "Tags",
+        "type": "str",
+        "taux_manquant": 0.362,
+        "n_valeurs_uniques": 315
+      },
+      {
+        "nom": "Screenshots",
+        "type": "str",
+        "taux_manquant": 0.04,
+        "n_valeurs_uniques": 480
+      },
+      {
+        "nom": "Movies",
+        "type": "float64",
+        "taux_manquant": 1.0,
+        "n_valeurs_uniques": 0
+      }
+    ],
+    "statistiques": {
+      "Estimated owners": {
+        "count": 500.0,
+        "mean": 15.67,
+        "std": 219.91,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 0.0,
+        "75%": 0.0,
+        "max": 4704.0
+      },
+      "Peak CCU": {
+        "count": 500.0,
+        "mean": 0.14,
+        "std": 1.58,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 0.0,
+        "75%": 0.0,
+        "max": 18.0
+      },
+      "Required age": {
+        "count": 500.0,
+        "mean": 4.42,
+        "std": 6.45,
+        "min": 0.0,
+        "25%": 0.57,
+        "50%": 2.49,
+        "75%": 5.69,
+        "max": 59.99
+      },
+      "Price": {
+        "count": 500.0,
+        "mean": 16.2,
+        "std": 27.8,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 0.0,
+        "75%": 30.0,
+        "max": 95.0
+      },
+      "DiscountDLC count": {
+        "count": 500.0,
+        "mean": 4.28,
+        "std": 89.7,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 0.0,
+        "75%": 0.0,
+        "max": 2006.0
+      },
+      "Metacritic score": {
+        "count": 500.0,
+        "mean": 1.62,
+        "std": 11.01,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 0.0,
+        "75%": 0.0,
+        "max": 88.0
+      },
+      "User score": {
+        "count": 500.0,
+        "mean": 0.16,
+        "std": 3.49,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 0.0,
+        "75%": 0.0,
+        "max": 78.0
+      },
+      "Positive": {
+        "count": 500.0,
+        "mean": 511.75,
+        "std": 4213.18,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 3.0,
+        "75%": 26.25,
+        "max": 63994.0
+      },
+      "Negative": {
+        "count": 500.0,
+        "mean": 81.3,
+        "std": 536.78,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 1.0,
+        "75%": 7.0,
+        "max": 7027.0
+      },
+      "Score rank": {
+        "count": 1.0,
+        "mean": 99.0,
+        "std": null,
+        "min": 99.0,
+        "25%": 99.0,
+        "50%": 99.0,
+        "75%": 99.0,
+        "max": 99.0
+      },
+      "Achievements": {
+        "count": 500.0,
+        "mean": 11.98,
+        "std": 23.31,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 0.0,
+        "75%": 16.0,
+        "max": 251.0
+      },
+      "Recommendations": {
+        "count": 500.0,
+        "mean": 374.09,
+        "std": 2927.84,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 0.0,
+        "75%": 0.0,
+        "max": 53893.0
+      },
+      "Average playtime forever": {
+        "count": 500.0,
+        "mean": 83.69,
+        "std": 355.68,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 0.0,
+        "75%": 0.0,
+        "max": 4131.0
+      },
+      "Average playtime two weeks": {
+        "count": 500.0,
+        "mean": 8.18,
+        "std": 70.15,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 0.0,
+        "75%": 0.0,
+        "max": 1278.0
+      },
+      "Median playtime forever": {
+        "count": 500.0,
+        "mean": 75.92,
+        "std": 351.74,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 0.0,
+        "75%": 0.0,
+        "max": 5519.0
+      },
+      "Median playtime two weeks": {
+        "count": 500.0,
+        "mean": 9.45,
+        "std": 93.21,
+        "min": 0.0,
+        "25%": 0.0,
+        "50%": 0.0,
+        "75%": 0.0,
+        "max": 1886.0
+      },
+      "Movies": {
+        "count": 0.0,
+        "mean": null,
+        "std": null,
+        "min": null,
+        "25%": null,
+        "50%": null,
+        "75%": null,
+        "max": null
+      }
+    },
+    "extrait": [
+      {
+        "AppID": "Fantasy Soul Revenge",
+        "Name": "Dec 28, 2024",
+        "Release date": "0 - 20000",
+        "Estimated owners": 0,
+        "Peak CCU": 0,
+        "Required age": 0.69,
+        "Price": 0,
+        "DiscountDLC count": 0,
+        "About the game": "Fantasy Soul Revenge - Explore Your Fighting Skills Beat all the Powerful Enemies having unique 'Soul Power' as elemental magic, giant combo attacks (like ghosts, spirits, or mythic creatures) with Fantasy Soul Revenge. This action packed fantasy-based fighting game challenges you to struggle between evil forces of monsters comes in this gameplay stages. kill all them and boost your fight stamina with picking ground items and become a champion. Features: Dynamic Arenas: Arenas are inspired by both classic fantasy settings and ominous afterlife realms: a ruined castle, a molten volcano, a forgotten temple in a dark forest, or even a mystical 'soul dimension' that alters reality as you fight. Realistic Environment:  Experience vibrant, detailed graphics as you navigate through diverse and challenging environments. Each level offers a new backdrop to showcase your action combat fighting skills. Customizable Characters: Personalize your fighter with a wide array of customization options. Choose unique outfits to make your character stand out in every performance. Boss Fights: Each chapter has a boss fight—typically against powerful beings like powerful demons, or other soul-hungry entities. These fights have special mechanics and require specific tactics. Smash all enemies with fast run body hits, jump leg attacks and strong arm flip combos and strengthen your superhero powers in  Fantasy Soul Revenge. Intuitive Controls: Whether you’re a seasoned newcomer, the game’s controls are designed for ease of use and depth. Perfect your attack timing and execution to fight land on those impressive tricks of defensive skills. Weapons:  Some Weapons can be collected from fantasy fight ground where battle occurs throughout the game. Some are cursed and offer powerful abilities to defeat big monsters. Dive into the Arena of Fantasy Soul Revenge and unleash your inner fighter. Download now and start your journey to become a superhero who defense himself and realistic game arena where giant bosses are coming to kill the player. Ready to take on the challenge? Get Up  and attack to fame with Fantasy Soul Revenge !",
+        "Supported languages": "['English', 'French', 'Italian', 'German', 'Spanish - Spain', 'Arabic', 'Bulgarian', 'Czech', 'Danish', 'Dutch', 'Finnish', 'Greek', 'Hungarian', 'Indonesian', 'Japanese', 'Korean', 'Norwegian', 'Polish', 'Portuguese - Brazil', 'Portuguese - Portugal', 'Romanian', 'Russian', 'Simplified Chinese', 'Spanish - Latin America', 'Swedish', 'Thai', 'Traditional Chinese', 'Turkish', 'Ukrainian', 'Vietnamese']",
+        "Full audio languages": "[]",
+        "Reviews": null,
+        "Header image": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3400080/header.jpg?t=1737010786",
+        "Website": null,
+        "Support url": null,
+        "Support email": "nitin.javapro@gmail.com",
+        "Windows": true,
+        "Mac": false,
+        "Linux": false,
+        "Metacritic score": 0,
+        "Metacritic url": null,
+        "User score": 0,
+        "Positive": 4,
+        "Negative": 2,
+        "Score rank": null,
+        "Achievements": 0,
+        "Recommendations": 0,
+        "Notes": null,
+        "Average playtime forever": 0,
+        "Average playtime two weeks": 0,
+        "Median playtime forever": 0,
+        "Median playtime two weeks": 0,
+        "Developers": "Nitx Games",
+        "Publishers": "Nitx Games",
+        "Categories": "Single-player,Family Sharing",
+        "Genres": "Action,Casual,Indie,Simulation,Strategy",
+        "Tags": "Side Scroller,Action,Beat 'em up,2D Fighter,Arcade,Action-Adventure,Character Customization,2D,Realistic,Adventure,Simulation,Casual,Indie,Strategy,Combat,Singleplayer,Fighting,Retro",
+        "Screenshots": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3400080/ss_09f8fcf8d54e46678e5910e848e8257d440b6e1d.1920x1080.jpg?t=1737010786,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3400080/ss_8886b3e01998422a7d1f935a63cfd921fca373a4.1920x1080.jpg?t=1737010786,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3400080/ss_9f16cde2fa08cd278abc14ea36e816db56a2c969.1920x1080.jpg?t=1737010786,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3400080/ss_d80ee8f1ef05e7353353ce815394dca113f0ec12.1920x1080.jpg?t=1737010786,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3400080/ss_2ea571b74c077ce0730e3a1fc4c67f978cb96b86.1920x1080.jpg?t=1737010786,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3400080/ss_56021ce897f664c50218484da61dc2f27c69bd4f.1920x1080.jpg?t=1737010786,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3400080/ss_3d21537312c6ec1ea974ae538f1bd0cad23adc8c.1920x1080.jpg?t=1737010786,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3400080/ss_f58707fad5d1496ddf6f34f0425034c65baed80a.1920x1080.jpg?t=1737010786,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3400080/ss_8b017ee27269ccd7bc5e83189789c01fb62a2a85.1920x1080.jpg?t=1737010786,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3400080/ss_53bab55a9d6d59434365dd76a32dd1a428c3e9b5.1920x1080.jpg?t=1737010786",
+        "Movies": null
+      },
+      {
+        "AppID": "Raioh",
+        "Name": "Oct 6, 2023",
+        "Release date": "0 - 20000",
+        "Estimated owners": 0,
+        "Peak CCU": 0,
+        "Required age": 3.49,
+        "Price": 50,
+        "DiscountDLC count": 0,
+        "About the game": "Raioh is a retro style shot and bomb style vertical scroll shmup. Weapons are three types of main shots and bombs. Main shot powers up to 5 levels by taking items. You can choose the difficulty level from easy, normal and hard. Auto bomb can be selected. However, auto bomb is not perfect. It cannot respond to high-speed enemy bullets or lasers. Press ALT+ENTER to switch to full screen.",
+        "Supported languages": "['English']",
+        "Full audio languages": "[]",
+        "Reviews": null,
+        "Header image": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2554950/header.jpg?t=1696582100",
+        "Website": null,
+        "Support url": null,
+        "Support email": "ontake44@gmail.com",
+        "Windows": true,
+        "Mac": false,
+        "Linux": false,
+        "Metacritic score": 0,
+        "Metacritic url": null,
+        "User score": 0,
+        "Positive": 17,
+        "Negative": 0,
+        "Score rank": null,
+        "Achievements": 0,
+        "Recommendations": 0,
+        "Notes": null,
+        "Average playtime forever": 0,
+        "Average playtime two weeks": 0,
+        "Median playtime forever": 0,
+        "Median playtime two weeks": 0,
+        "Developers": "Ontake Workshop",
+        "Publishers": "Ontake Workshop",
+        "Categories": "Single-player,Partial Controller Support,Family Sharing",
+        "Genres": "Action",
+        "Tags": "Action,Shooter,Shoot 'Em Up,Singleplayer,2D,Pixel Graphics,1990's,Sci-fi,PvE,Controller,Combat",
+        "Screenshots": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2554950/ss_ceb9707593264bf3b0b6c73e929ad19a40d3f9d6.1920x1080.jpg?t=1696582100,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2554950/ss_07fb8ac9b4ac03154b76697e202d522759795461.1920x1080.jpg?t=1696582100,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2554950/ss_b64f1dbfa65a79bfa844b669e88908be94485c8c.1920x1080.jpg?t=1696582100,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2554950/ss_797fe42220be21913f7250796b98b9b58be82afd.1920x1080.jpg?t=1696582100,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2554950/ss_acac7266caee8b0c12bfebb1bf7e1c1eb9650380.1920x1080.jpg?t=1696582100,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2554950/ss_2244b81835a29aef190f1ca73a7852ca3bf36c06.1920x1080.jpg?t=1696582100,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2554950/ss_ee34e2825b69882f6dcd54ff12701356870ea482.1920x1080.jpg?t=1696582100",
+        "Movies": null
+      },
+      {
+        "AppID": "Ten Tek",
+        "Name": "Oct 18, 2025",
+        "Release date": "0 - 0",
+        "Estimated owners": 0,
+        "Peak CCU": 0,
+        "Required age": 1.59,
+        "Price": 0,
+        "DiscountDLC count": 0,
+        "About the game": "TenTek is an atmospheric mystical game where you take on the role of a friendly yet mysterious ghost, drifting through a small town that at first glance seems quiet and reality, behind the cozy houses and welcoming facades lie countless secrets, intrigues, and forbidden stories waiting to be uncovered. Your main goal is to observe the lives of the townspeople, study their habits, relationships, and secrets, and gradually unravel the main mystery of this place.You are an invisible witness. No one can see or hear you, but you are able to penetrate the most hidden corners of other people's lives, collecting fragments of the past and present. In the game, you will uncover over 150 unique photographs and 80 rare videos , each adding a new element to the puzzle of the overall story.These discoveries will hint at dramatic events, secret connections between characters, and dark truths they desperately try to keep hidden.Each photo is a small clue, and each video is a revelation that may completely change your understanding of what is happening. But TenTek is not just about finding clues.Along the way, you will encounter challenging puzzles and tasks that test your attentiveness.By solving them, you will unlock new locations, discover hidden objects, and gain access to previously closed areas of the town.Clues are scattered all over the world, and only the most observant players will be able to find them all.",
+        "Supported languages": "['English', 'Russian']",
+        "Full audio languages": "['English', 'Russian']",
+        "Reviews": null,
+        "Header image": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4025190/c7b166fc4fd617285eb529ec8cb3f438a4bbbb1b/header.jpg?t=1760792737",
+        "Website": null,
+        "Support url": null,
+        "Support email": "lgcompanymonitors@gmail.com",
+        "Windows": true,
+        "Mac": false,
+        "Linux": false,
+        "Metacritic score": 0,
+        "Metacritic url": null,
+        "User score": 0,
+        "Positive": 0,
+        "Negative": 0,
+        "Score rank": null,
+        "Achievements": 0,
+        "Recommendations": 118,
+        "Notes": "The game contains scenes of full nudity and explicit sexual content between adult characters. Gameplay includes viewing erotic videos and images, searching for items that unlock intimate scenes, and a storyline built around romantic and sexual relationships between characters. All characters depicted in the game are over 18 years old. The game does not contain scenes of sexual violence or any content that violates Steam's rules.",
+        "Average playtime forever": 0,
+        "Average playtime two weeks": 0,
+        "Median playtime forever": 0,
+        "Median playtime two weeks": 0,
+        "Developers": "Inspite",
+        "Publishers": "Inspite",
+        "Categories": "Single-player,Family Sharing",
+        "Genres": "Indie,Simulation",
+        "Tags": null,
+        "Screenshots": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4025190/adf774bd569338340965fccdb96894adb59e9740/ss_adf774bd569338340965fccdb96894adb59e9740.1920x1080.jpg?t=1760792737,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4025190/3ffc52aec8cda54c35bb950d84d9eb2794561321/ss_3ffc52aec8cda54c35bb950d84d9eb2794561321.1920x1080.jpg?t=1760792737,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4025190/ab18c78e65072d5bd10cb86c4aa9bc5d2c6a40c0/ss_ab18c78e65072d5bd10cb86c4aa9bc5d2c6a40c0.1920x1080.jpg?t=1760792737,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4025190/8ebd1d9bb15de39f1ad62b8d12a2ba59ffdf5df5/ss_8ebd1d9bb15de39f1ad62b8d12a2ba59ffdf5df5.1920x1080.jpg?t=1760792737,https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4025190/4cb7671400e3cd2ab0c8f769e072c96972560c1d/ss_4cb7671400e3cd2ab0c8f769e072c96972560c1d.1920x1080.jpg?t=1760792737",
+        "Movies": null
+      }
+    ]
+  },
+  "analyse_llm": {
+    "resume": "Ce dataset recense 500 jeux vidéo (probablement issus de Steam) avec des métadonnées commerciales (prix, éditeurs, développeurs, genres, catégories, langues) et des indicateurs d'engagement (avis positifs/négatifs, temps de jeu, succès, recommandations). Une anomalie structurelle majeure est visible : les colonnes semblent décalées, 'AppID' contenant en réalité le nom du jeu, 'Name' contenant une date de sortie, et 'Release date' contenant une plage de type 'Estimated owners', ce qui fausse toute lecture directe des libellés de colonnes. De nombreuses colonnes annexes (Reviews, Score rank, Metacritic url, Notes, Website) sont quasi entièrement vides et peu exploitables telles quelles.",
+    "colonnes_cles": [
+      "AppID",
+      "Price",
+      "Positive",
+      "Negative",
+      "Genres",
+      "Categories",
+      "Developers",
+      "Publishers",
+      "Supported languages",
+      "Achievements",
+      "Recommendations",
+      "Average playtime forever",
+      "Windows",
+      "Mac",
+      "Linux"
+    ],
+    "problemes_qualite": [
+      {
+        "colonne": "Movies",
+        "probleme": "100% de valeurs manquantes, colonne totalement vide et inutilisable",
+        "gravite": "elevee"
+      },
+      {
+        "colonne": "AppID / Name / Release date",
+        "probleme": "Décalage apparent des colonnes : AppID contient le nom du jeu, Name contient une date, Release date contient une plage numérique type 'estimated owners' ; le mapping des libellés ne correspond pas au contenu réel",
+        "gravite": "elevee"
+      },
+      {
+        "colonne": "Score rank",
+        "probleme": "99.8% de valeurs manquantes, quasiment inexploitable",
+        "gravite": "elevee"
+      },
+      {
+        "colonne": "Metacritic url",
+        "probleme": "97.8% de valeurs manquantes",
+        "gravite": "moyenne"
+      },
+      {
+        "colonne": "Reviews",
+        "probleme": "92.8% de valeurs manquantes",
+        "gravite": "moyenne"
+      },
+      {
+        "colonne": "Notes",
+        "probleme": "82.8% de valeurs manquantes, limite l'analyse du contenu sensible/âge",
+        "gravite": "faible"
+      },
+      {
+        "colonne": "Website / Support url",
+        "probleme": "Respectivement 66.6% et 61.6% manquants, limite l'analyse du support éditeur",
+        "gravite": "faible"
+      },
+      {
+        "colonne": "Tags",
+        "probleme": "36.2% de valeurs manquantes, réduit la fiabilité des analyses par tag",
+        "gravite": "moyenne"
+      },
+      {
+        "colonne": "Estimated owners",
+        "probleme": "Valeurs numériques très faibles (max 4704, médiane 0) incohérentes avec des volumes de possesseurs Steam typiques, suggère une erreur d'encodage ou de colonne mal alignée",
+        "gravite": "elevee"
+      },
+      {
+        "colonne": "Windows",
+        "probleme": "Une seule valeur unique (toujours vrai), colonne sans variance donc peu informative",
+        "gravite": "faible"
+      },
+      {
+        "colonne": "Metacritic score / User score",
+        "probleme": "Valeurs majoritairement à 0, faible couverture réelle de la notation critique/utilisateur",
+        "gravite": "moyenne"
+      }
+    ],
+    "questions_analytiques": [
+      {
+        "question": "Quels genres ou catégories de jeux concentrent le plus grand nombre d'avis positifs, et donc la plus forte popularité perçue ?",
+        "colonnes_necessaires": [
+          "Genres",
+          "Categories",
+          "Positive",
+          "Negative"
+        ]
+      },
+      {
+        "question": "Comment se répartissent les jeux par tranche de prix, et cette tranche est-elle associée à un ratio avis positifs/négatifs différent ?",
+        "colonnes_necessaires": [
+          "Price",
+          "Positive",
+          "Negative"
+        ]
+      },
+      {
+        "question": "Quels développeurs ou éditeurs publient le plus de titres dans l'échantillon et quel est leur accueil moyen (avis positifs vs négatifs) ?",
+        "colonnes_necessaires": [
+          "Developers",
+          "Publishers",
+          "Positive",
+          "Negative"
+        ]
+      },
+      {
+        "question": "Quelle est la part des jeux compatibles Mac ou Linux en plus de Windows, et cette compatibilité multiplateforme varie-t-elle selon le genre ?",
+        "colonnes_necessaires": [
+          "Windows",
+          "Mac",
+          "Linux",
+          "Genres"
+        ]
+      },
+      {
+        "question": "Existe-t-il un lien entre le nombre de langues supportées par un jeu et le volume total d'avis (positifs + négatifs) qu'il reçoit ?",
+        "colonnes_necessaires": [
+          "Supported languages",
+          "Positive",
+          "Negative"
+        ]
+      }
+    ]
+  }
+}
