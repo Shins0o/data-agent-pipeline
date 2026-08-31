@@ -8,26 +8,33 @@ Lancement : python -m agents.profiler
 
 from __future__ import annotations
 
-import json
 import os
-from pathlib import Path
 
-import pandas as pd
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
-from agents.profiling import SYSTEM_PROMPT, build_profile, construire_prompt, nettoyer_json
+from agents.profiling import (
+    SYSTEM_PROMPT,
+    charger_et_profiler,
+    construire_prompt,
+    ecrire_rapport,
+    valider_reponse,
+)
 from agents.usage import UsageTracker
+from schemas.contracts import LectureDataset
+from tools import PROJECT_ROOT
 
 load_dotenv()
 
-SAMPLE_PATH = Path("data/samples/games_sample.csv")
-OUTPUT_PATH = Path("outputs/01_profile.json")
-USAGE_PATH = Path("outputs/usage_report.json")
+OUTPUT_PATH = PROJECT_ROOT / "outputs" / "01_profile.json"
+USAGE_PATH = PROJECT_ROOT / "outputs" / "usage_report.json"
 MODEL = "claude-sonnet-5"
+VOIE = "anthropic (cle API)"
 
 
-def interroger_claude(client: Anthropic, profile: dict, tracker: UsageTracker) -> dict:
+def interroger_claude(
+    client: Anthropic, profile: dict, tracker: UsageTracker
+) -> LectureDataset:
     response = client.messages.create(
         model=MODEL,
         max_tokens=2000,
@@ -36,49 +43,18 @@ def interroger_claude(client: Anthropic, profile: dict, tracker: UsageTracker) -
     )
 
     tracker.from_client_sdk("01_profilage", MODEL, response)
-    texte = nettoyer_json(response.content[0].text)
-
-    try:
-        return json.loads(texte)
-    except json.JSONDecodeError:
-        print("Le modele n'a pas renvoye du JSON valide. Reponse brute :")
-        print(texte)
-        raise
+    return valider_reponse(response.content[0].text)
 
 
 def main() -> None:
-    df = pd.read_csv(SAMPLE_PATH)
-    print(f"Dataset charge : {len(df)} lignes, {len(df.columns)} colonnes")
-
-    profile = build_profile(df)
-    print("Profil technique calcule")
+    profile = charger_et_profiler()
 
     tracker = UsageTracker()
     client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     analyse = interroger_claude(client, profile, tracker)
-    print("Analyse recue")
+    print("Analyse recue et validee")
 
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(
-        json.dumps(
-            {
-                "source": str(SAMPLE_PATH),
-                "modele": MODEL,
-                "voie": "anthropic (cle API)",
-                "profil_technique": profile,
-                "analyse_llm": analyse,
-            },
-            indent=2,
-            ensure_ascii=False,
-        ),
-        encoding="utf-8",
-    )
-    print(f"Rapport ecrit dans {OUTPUT_PATH}")
-
-    print("\nQuestions proposees :")
-    for q in analyse["questions_analytiques"]:
-        print(f"  - {q['question']}")
-
+    ecrire_rapport(OUTPUT_PATH, profile, analyse, MODEL, VOIE)
     tracker.print_table()
     tracker.save(USAGE_PATH)
 

@@ -2,31 +2,31 @@
   "par_agent": [
     {
       "agent": "01_profilage",
-      "model": "claude-haiku-4-5",
-      "input_tokens": 7172,
-      "output_tokens": 14,
+      "model": "claude-haiku-4-5-20251001",
+      "input_tokens": 6033,
+      "output_tokens": 16,
       "cache_creation_tokens": 0,
       "cache_read_tokens": 0,
-      "total_tokens": 7186,
-      "cout_usd": 0.0
+      "total_tokens": 6049,
+      "cout_usd": 0.006113
     },
     {
       "agent": "01_profilage",
       "model": "claude-sonnet-5",
-      "input_tokens": 2,
-      "output_tokens": 2668,
-      "cache_creation_tokens": 12314,
-      "cache_read_tokens": 9162,
-      "total_tokens": 24146,
-      "cout_usd": 0.059301
+      "input_tokens": 2925,
+      "output_tokens": 3319,
+      "cache_creation_tokens": 15326,
+      "cache_read_tokens": 0,
+      "total_tokens": 21570,
+      "cout_usd": 0.077355
     }
   ],
   "totaux": {
-    "input_tokens": 7174,
-    "output_tokens": 2682,
-    "cache_creation_tokens": 12314,
-    "cache_read_tokens": 9162,
-    "total_tokens": 31332,
-    "cout_usd": 0.0593
+    "input_tokens": 8958,
+    "output_tokens": 3335,
+    "cache_creation_tokens": 15326,
+    "cache_read_tokens": 0,
+    "total_tokens": 27619,
+    "cout_usd": 0.0835
   }
 }

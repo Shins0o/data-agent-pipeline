@@ -1,15 +1,15 @@
-"""Agent 1 : profilage du dataset Steam (implementation Agent SDK).
+"""Appel du CLI Claude Code via l'Agent SDK, sur l'abonnement.
 
-Variante de developpement. Passe par le CLI Claude Code, donc par
-l'authentification de l'abonnement et non par une cle API facturee.
+Isole ici parce que la partie qui compte, le diagnostic d'un echec, ne
+merite d'etre ecrite qu'une fois.
 
-Prerequis : le CLI Claude Code authentifie (le SDK en embarque une copie dans
-_bundled/). Lancement : python -m agents.profiler_agent
+Note de dette : agents/profiler_agent.py porte encore sa propre copie de
+cette plomberie. Elle sera migree ici une fois l'analyste valide, dans un
+commit qui ne fait que ca.
 """
 
 from __future__ import annotations
 
-import asyncio
 import os
 
 from claude_agent_sdk import (
@@ -20,26 +20,16 @@ from claude_agent_sdk import (
     query,
 )
 
-from agents.profiling import (
-    SYSTEM_PROMPT,
-    charger_et_profiler,
-    construire_prompt,
-    ecrire_rapport,
-    valider_reponse,
-)
 from agents.usage import UsageTracker
-from schemas.contracts import LectureDataset
-from tools import PROJECT_ROOT
 
-# Pas de load_dotenv ici, volontairement : si ANTHROPIC_API_KEY se retrouve
-# dans l'environnement, le CLI la prioriserait sur l'abonnement et facturerait.
+# Un nom nu retire l'outil du contexte. allowed_tools ne filtre pas, c'est une
+# liste d'auto-approbation.
+OUTILS_INTERDITS = ["Bash", "Read", "Write", "Edit", "WebSearch", "WebFetch"]
 
-OUTPUT_PATH = PROJECT_ROOT / "outputs" / "01_profile_agent.json"
-USAGE_PATH = PROJECT_ROOT / "outputs" / "usage_report_agent.json"
-MODEL = "claude-sonnet-5"
-VOIE = "claude-agent-sdk (abonnement)"
-BUDGET_MAX_USD = 0.50
+# Un tour n'est pas un appel au modele : le CLI en consomme un pour son
+# initialisation. Avec 1, la limite tombe systematiquement.
 MAX_TURNS = 3
+BUDGET_MAX_USD = 0.50
 
 
 def verifier_environnement() -> None:
@@ -76,17 +66,24 @@ def tracer_echec(resultat: ResultMessage | None, morceaux: list[str]) -> None:
     print("--- fin du diagnostic ---\n")
 
 
-async def interroger_agent(profile: dict, tracker: UsageTracker) -> LectureDataset:
+async def interroger(
+    prompt: str,
+    system_prompt: str,
+    model: str,
+    tracker: UsageTracker,
+    etape: str,
+) -> str:
+    """Envoie un prompt et rend le texte assistant concatene, sans le valider.
+
+    La validation appartient a l'appelant : ce module ne sait pas quel
+    contrat la reponse doit respecter, et n'a pas a le savoir.
+    """
     options = ClaudeAgentOptions(
-        system_prompt=SYSTEM_PROMPT,
-        model=MODEL,
-        # Un tour n'est pas un appel au modele : le CLI en consomme un pour
-        # son initialisation. Avec 1, la limite tombe systematiquement.
+        system_prompt=system_prompt,
+        model=model,
         max_turns=MAX_TURNS,
         max_budget_usd=BUDGET_MAX_USD,
-        # Un nom nu retire l'outil du contexte. allowed_tools ne filtre pas,
-        # c'est une liste d'auto-approbation.
-        disallowed_tools=["Bash", "Read", "Write", "Edit", "WebSearch", "WebFetch"],
+        disallowed_tools=OUTILS_INTERDITS,
         # Ignore CLAUDE.md, skills et settings locaux : meme comportement partout.
         setting_sources=[],
     )
@@ -95,7 +92,7 @@ async def interroger_agent(profile: dict, tracker: UsageTracker) -> LectureDatas
     resultat: ResultMessage | None = None
 
     try:
-        async for message in query(prompt=construire_prompt(profile), options=options):
+        async for message in query(prompt=prompt, options=options):
             if isinstance(message, AssistantMessage):
                 for block in message.content:
                     if isinstance(block, TextBlock):
@@ -109,22 +106,5 @@ async def interroger_agent(profile: dict, tracker: UsageTracker) -> LectureDatas
     if resultat is None:
         raise RuntimeError("Aucun ResultMessage recu, la session a echoue.")
 
-    tracker.from_agent_sdk("01_profilage", resultat)
-    return valider_reponse("".join(morceaux))
-
-
-async def main() -> None:
-    verifier_environnement()
-    profile = charger_et_profiler()
-
-    tracker = UsageTracker()
-    analyse = await interroger_agent(profile, tracker)
-    print("Analyse recue et validee")
-
-    ecrire_rapport(OUTPUT_PATH, profile, analyse, MODEL, VOIE)
-    tracker.print_table()
-    tracker.save(USAGE_PATH)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    tracker.from_agent_sdk(etape, resultat)
+    return "".join(morceaux)

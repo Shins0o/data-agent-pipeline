@@ -224,3 +224,4 @@ data/raw/
 
 # Traces d'exécution des runs d'agents
 runs/
+outputs/
