@@ -71,6 +71,8 @@ class VerdictQuestion(BaseModel):
     valeurs_attendues: list[float]
     valeurs_manquantes: list[float]
     valeur_rendue: str | None
+    code_execute: str | None
+    limites: str | None
     tentatives: int
     duree_s: float
     tokens: int
@@ -80,8 +82,10 @@ class VerdictQuestion(BaseModel):
 class RapportEvaluation(BaseModel):
     """Synthese d'une campagne. C'est le fichier qu'on relit dans six mois."""
 
+    debut: str
     modele: str
     voie: str
+    n_lignes: int
     n_questions: int
     n_correct: int
     taux_justesse: float
@@ -172,6 +176,8 @@ def evaluer_une(
             libelles_manquants=list(reference.libelles_attendus),
             valeurs_manquantes=list(reference.valeurs_attendues),
             valeur_rendue=None,
+            code_execute=None,
+            limites=None,
             tentatives=0,
             duree_s=round(time.monotonic() - debut, 1),
             tokens=tokens,
@@ -203,6 +209,8 @@ def evaluer_une(
         libelles_manquants=libelles_manquants,
         valeurs_manquantes=valeurs_manquantes,
         valeur_rendue=(resultat.valeur or "")[:EXTRAIT_MAX] or None,
+        code_execute=resultat.code_execute,
+        limites=resultat.limites,
         tentatives=len(resultat.tentatives),
         duree_s=round(time.monotonic() - debut, 1),
         tokens=tokens,
@@ -256,8 +264,10 @@ def lancer_campagne(
 
     n_correct = sum(1 for verdict in verdicts if verdict.verdict == "correct")
     return RapportEvaluation(
+        debut=logger.debut.isoformat(timespec="seconds"),
         modele=MODEL,
         voie=VOIE,
+        n_lignes=len(df),
         n_questions=len(verdicts),
         n_correct=n_correct,
         taux_justesse=round(n_correct / len(verdicts), 3),
@@ -293,9 +303,11 @@ def afficher(rapport: RapportEvaluation) -> None:
         if verdict.libelles_manquants:
             print(f"Libelles introuvables : {verdict.libelles_manquants}")
         if verdict.valeurs_manquantes:
+            # :g et non :.2% : une tolerance de 1e-06 s'afficherait 0,00 %,
+            # ce qui se lit comme une egalite stricte alors qu'elle n'en est pas.
             print(
                 f"Valeurs introuvables  : {verdict.valeurs_manquantes} "
-                f"(tolerance {verdict.tolerance:.2%})"
+                f"(tolerance relative {verdict.tolerance:g})"
             )
         print(f"Valeur rendue :\n{verdict.valeur_rendue}")
 
