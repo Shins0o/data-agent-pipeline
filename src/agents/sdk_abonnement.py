@@ -101,7 +101,12 @@ async def interroger(
                 resultat = message
     except Exception as exc:
         tracer_echec(resultat, morceaux)
-        raise RuntimeError(f"Echec de la requete Claude Code : {exc}") from exc
+        # Le SDK peut renvoyer subtype="success" avec is_error=True : le texte de
+        # son exception dit alors le contraire de la verite. Le champ `result`
+        # porte la cause lisible, "Not logged in" par exemple, et c'est elle qui
+        # doit survivre dans le message, pas seulement dans le diagnostic.
+        cause = resultat.result if resultat is not None and resultat.result else exc
+        raise RuntimeError(f"Echec de la requete Claude Code : {cause}") from exc
 
     if resultat is None:
         raise RuntimeError("Aucun ResultMessage recu, la session a echoue.")
