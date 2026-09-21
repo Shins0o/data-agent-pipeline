@@ -63,9 +63,17 @@ class NombreEcrit:
 
 @dataclass(frozen=True)
 class ChiffreNonSource:
+    """Un nombre du rapport sans source, et de quoi le retrouver.
+
+    `debut` et `fin` situent le nombre dans le texte de son champ : le rendu
+    marque le nombre signale, et pas une autre occurrence des memes chiffres.
+    """
+
     champ: str
     nombre: str
     extrait: str
+    debut: int
+    fin: int
 
 
 def _motif(milliers_espaces: bool) -> re.Pattern[str]:
@@ -204,7 +212,13 @@ def chiffres_non_sources(
     """Les nombres du rapport qu'aucune source de la campagne ne justifie."""
     sources = sources_de_campagne(campagne)
     return [
-        ChiffreNonSource(champ=champ, nombre=nombre.texte, extrait=_extrait(texte, nombre))
+        ChiffreNonSource(
+            champ=champ,
+            nombre=nombre.texte,
+            extrait=_extrait(texte, nombre),
+            debut=nombre.debut,
+            fin=nombre.fin,
+        )
         for champ, texte in champs_du_rapport(rapport)
         for nombre in lire_nombres(texte)
         if not any(correspond(nombre, source) for source in sources)
