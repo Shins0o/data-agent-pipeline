@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class ProblemeQualite(BaseModel):
@@ -184,3 +184,102 @@ class ResultatCampagne(BaseModel):
     issues: list[IssueSousQuestion]
     colonnes_inventees: dict[str, list[str]]
     variables_non_mobilisees: list[str]
+
+
+class Constat(BaseModel):
+    """Ce que la donnee montre. Premier des trois niveaux de confiance du rapport.
+
+    `sous_questions` relie le constat aux analyses qui le fondent, donc a un
+    code execute sur les donnees reelles. Un constat sans sous-question serait
+    une affirmation du modele, et c'est exactement ce que le pipeline interdit.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(pattern=r"^C\d+$")
+    enonce: str
+    sous_questions: list[int] = Field(min_length=1)
+
+
+class Interpretation(BaseModel):
+    """Ce que le pipeline deduit des constats. Deuxieme niveau de confiance."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(pattern=r"^I\d+$")
+    enonce: str
+    constats: list[str] = Field(min_length=1)
+
+
+class Recommandation(BaseModel):
+    """Ce que le pipeline recommande. Troisieme niveau, le moins sur des trois."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    enonce: str
+    appuis: list[str] = Field(min_length=1)
+
+
+class RapportFinal(BaseModel):
+    """Sortie du synthetiseur : la reponse a la question metier, et sa preuve.
+
+    Chaque recommandation remonte a des interpretations, chaque
+    interpretation a des constats, chaque constat a des sous-questions, et
+    chaque sous-question a un code execute, conserve dans campagne.json. Un
+    lecteur peut suivre n'importe quelle phrase du rapport jusqu'a la ligne
+    de pandas qui la fonde.
+
+    L'integrite de cette chaine est une regle du contrat : une interpretation
+    qui cite un constat inexistant rend le raisonnement invalide, le rapport
+    est rejete. La reference aux sous-questions, elle, se verifie contre la
+    campagne et vit dans agents/verification_rapport.py, parce que le contrat
+    ne connait pas la campagne.
+
+    Au moins une limite, parce que la regle du projet en fait une partie du
+    livrable et non une annexe. Zero recommandation est accepte : exiger une
+    recommandation quand la donnee n'en porte aucune, c'est demander au
+    modele d'en inventer une.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    reponse_courte: str
+    constats: list[Constat] = Field(min_length=1)
+    interpretations: list[Interpretation]
+    recommandations: list[Recommandation]
+    limites: list[str] = Field(min_length=1)
+    non_etabli: list[str]
+
+    @model_validator(mode="after")
+    def chaine_de_preuve_intacte(self) -> RapportFinal:
+        ids_constats = [constat.id for constat in self.constats]
+        ids_interpretations = [interp.id for interp in self.interpretations]
+
+        for nom, ids in (("constat", ids_constats), ("interpretation", ids_interpretations)):
+            doublons = sorted({i for i in ids if ids.count(i) > 1})
+            if doublons:
+                raise ValueError(f"Identifiants de {nom} en double : {doublons}")
+
+        constats_orphelins = [
+            (interp.id, ref)
+            for interp in self.interpretations
+            for ref in interp.constats
+            if ref not in ids_constats
+        ]
+        if constats_orphelins:
+            raise ValueError(
+                f"Interpretations citant un constat inexistant : {constats_orphelins}"
+            )
+
+        appuis_orphelins = [
+            ref
+            for recommandation in self.recommandations
+            for ref in recommandation.appuis
+            if ref not in ids_interpretations
+        ]
+        if appuis_orphelins:
+            raise ValueError(
+                f"Recommandations citant une interpretation inexistante : {appuis_orphelins}"
+            )
+
+        return self
