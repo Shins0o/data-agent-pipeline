@@ -99,10 +99,34 @@ def test_les_cles_imbriquees_sont_aussi_normalisees():
     assert json.loads(nettoyer_json(texte)) == {"sous_questions": [{"colonnes_necessaires": ["Price"]}]}
 
 
-def test_deux_cles_qui_se_confondent_ne_sont_pas_fusionnees_en_silence():
+def test_deux_cles_qui_se_confondent_avec_des_valeurs_differentes_ne_sont_pas_fusionnees():
     """Garder l'une ou l'autre serait une correction silencieuse : le contrat tranchera."""
     texte = json.dumps({"limites": "a", "limités": "b"}, ensure_ascii=False)
     assert json.loads(nettoyer_json(texte)) == {"limites": "a", "limités": "b"}
+
+
+# Reponse reelle de l'analyste, rejeu du 21 septembre (runs/20260921-153449),
+# sous-question 4 : la meme cle ecrite deux fois, avec et sans accent, meme valeur.
+REPONSE_REELLE_CLE_DOUBLEE = json.dumps(
+    {
+        "intention": "Diviser les jeux payants en quartiles de prix",
+        "colonnes_utilisées": ["Price", "owners_mid"],
+        "colonnes_utilisees": ["Price", "owners_mid"],
+        "code": "paid = df[df['Price'] > 0]\nresultat = paid['owners_mid'].median()",
+        "limites": "owners_mid est une colonne dérivée",
+    },
+    ensure_ascii=False,
+)
+
+
+def test_une_cle_doublee_avec_la_meme_valeur_ne_fait_plus_perdre_une_analyse():
+    plan = valider_plan_analyste(REPONSE_REELLE_CLE_DOUBLEE)
+    assert plan.colonnes_utilisees == ["Price", "owners_mid"]
+
+
+def test_la_fusion_ne_garde_qu_une_cle():
+    texte = json.dumps({"limités": "a", "limites": "a"}, ensure_ascii=False)
+    assert json.loads(nettoyer_json(texte)) == {"limites": "a"}
 
 
 def test_un_json_invalide_passe_tel_quel_et_reste_rejete_par_le_contrat():

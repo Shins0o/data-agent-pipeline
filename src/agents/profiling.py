@@ -151,19 +151,25 @@ def _sans_accent(texte: str) -> str:
 def _desaccentuer_cles(valeur):
     """Retire les accents des cles, a toute profondeur. Les valeurs ne sont pas touchees.
 
-    Si deux cles d'un meme objet se confondent une fois desaccentuees, l'objet
-    est rendu tel quel : choisir laquelle garder serait une correction
-    silencieuse, et le contrat rejettera la cle accentuee comme inattendue.
+    Deux cles d'un meme objet qui se confondent une fois desaccentuees :
+    - meme valeur, elles sont fusionnees. Il n'y a rien a trancher, le modele
+      a simplement ecrit la cle deux fois (campagne du 21 septembre, q4) ;
+    - valeurs differentes, l'objet est rendu tel quel. Choisir laquelle
+      garder serait une correction silencieuse, et le contrat rejettera la
+      cle accentuee comme inattendue.
     """
     if isinstance(valeur, list):
         return [_desaccentuer_cles(element) for element in valeur]
     if not isinstance(valeur, dict):
         return valeur
 
-    cles = [_sans_accent(cle) for cle in valeur]
-    if len(set(cles)) != len(cles):
-        return valeur
-    return {cle: _desaccentuer_cles(v) for cle, v in zip(cles, valeur.values())}
+    fusionne = {}
+    for cle, v in valeur.items():
+        cle_sans_accent = _sans_accent(cle)
+        if cle_sans_accent in fusionne and fusionne[cle_sans_accent] != v:
+            return valeur
+        fusionne[cle_sans_accent] = v
+    return {cle: _desaccentuer_cles(v) for cle, v in fusionne.items()}
 
 
 def nettoyer_json(texte: str) -> str:
