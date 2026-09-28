@@ -8,13 +8,15 @@ un seul appel.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pandas as pd
 import pytest
 from pydantic import ValidationError
 
 from agents.analysis import MAX_TENTATIVES
-from agents.orchestration import conduire_campagne
+from agents.campagne_agent import lire_arguments
+from agents.orchestration import conduire_campagne, rejouer_plan
 from utils.run_logger import RunLogger
 
 
@@ -209,3 +211,73 @@ def test_le_resultat_de_campagne_se_serialise_et_se_relit(df, logger):
     relue = ResultatCampagne.model_validate_json(campagne.model_dump_json())
 
     assert [i.statut for i in relue.issues] == ["succes", "hors_contrat", "echec_execution"]
+
+
+# --- rejeu du plan d'une campagne passee -----------------------------------------
+
+
+
+def campagne_source(df, logger):
+    return conduire_campagne(
+        "pourquoi",
+        df,
+        lambda _: plan_campagne(3),
+        analyste_scripte({n: [plan_analyste(CODE_JUSTE)] for n in (1, 2, 3)}),
+        logger,
+    )
+
+
+def test_rejouer_un_plan_n_appelle_pas_le_planificateur(df, logger, tmp_path):
+    """Le plan est fige : le rejouer ne doit rien couter au planificateur."""
+    source = campagne_source(df, logger)
+    nouveau_logger = RunLogger(racine=tmp_path / "rejeu")
+
+    rejouee = rejouer_plan(
+        source,
+        df,
+        analyste_scripte({n: [plan_analyste(CODE_JUSTE)] for n in (1, 2, 3)}),
+        nouveau_logger,
+    )
+
+    trace = etapes(nouveau_logger)
+    assert trace[0] == "plan_rejoue"
+    assert "plan_campagne" not in trace
+    assert rejouee.plan == source.plan
+
+
+def test_rejouer_un_plan_relance_toutes_les_analyses(df, logger, tmp_path):
+    """Rien n'est repris des resultats de la source : seul le plan voyage."""
+    source = campagne_source(df, logger)
+
+    rejouee = rejouer_plan(
+        source,
+        df,
+        analyste_scripte(
+            {
+                1: [plan_analyste(CODE_JUSTE)],
+                2: [HORS_CONTRAT],
+                3: [plan_analyste(CODE_JUSTE)],
+            }
+        ),
+        RunLogger(racine=tmp_path / "rejeu"),
+    )
+
+    assert [i.statut for i in source.issues] == ["succes"] * 3
+    assert [i.statut for i in rejouee.issues] == ["succes", "hors_contrat", "succes"]
+
+
+def test_la_ligne_de_commande_accepte_une_question_ou_un_rejeu():
+    assert lire_arguments(["pourquoi les jeux marchent"]).question == "pourquoi les jeux marchent"
+    assert str(lire_arguments(["--rejouer", "runs/20260921-122758"]).rejouer) == str(
+        Path("runs/20260921-122758")
+    )
+
+
+def test_la_ligne_de_commande_refuse_les_deux_modes_a_la_fois():
+    with pytest.raises(SystemExit):
+        lire_arguments(["une question", "--rejouer", "runs/x"])
+
+
+def test_la_ligne_de_commande_refuse_l_absence_de_mode():
+    with pytest.raises(SystemExit):
+        lire_arguments([])

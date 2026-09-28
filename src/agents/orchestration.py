@@ -30,7 +30,12 @@ from agents.planification import (
     variables_non_mobilisees,
 )
 from agents.profiling import build_profile
-from schemas.contracts import IssueSousQuestion, ResultatCampagne, SousQuestion
+from schemas.contracts import (
+    IssueSousQuestion,
+    PlanCampagne,
+    ResultatCampagne,
+    SousQuestion,
+)
 from utils.run_logger import RunLogger
 
 # Une fonction qui, pour le numero d'une sous-question, rend l'appelant a
@@ -85,6 +90,40 @@ def traiter_sous_question(
     )
 
 
+def executer_plan(
+    question_metier: str,
+    plan: PlanCampagne,
+    df: pd.DataFrame,
+    fabriquer_appel_analyste: FabriqueAppel,
+    logger: RunLogger,
+) -> ResultatCampagne:
+    """Une analyse par sous-question, dans l'ordre du plan. Aucun appel au planificateur.
+
+    Separe de conduire_campagne pour pouvoir rejouer un plan deja valide. Le
+    planificateur est l'etape la plus variable du pipeline : deux campagnes
+    sur la meme question n'ont pas le meme plan, donc ne mesurent pas la meme
+    chose. Rejouer le plan fige d'une campagne passee isole ce qu'on veut
+    comparer, l'analyste et le synthetiseur, de ce qu'on ne veut pas.
+    """
+    issues = [
+        traiter_sous_question(
+            numero, sous_question, df, fabriquer_appel_analyste(numero), logger
+        )
+        for numero, sous_question in enumerate(plan.sous_questions, start=1)
+    ]
+
+    abouties = sum(1 for issue in issues if issue.statut == "succes")
+    logger.log("campagne_terminee", abouties=abouties, total=len(issues))
+
+    return ResultatCampagne(
+        question_metier=question_metier,
+        plan=plan,
+        issues=issues,
+        colonnes_inventees=colonnes_inventees(plan, list(df.columns)),
+        variables_non_mobilisees=variables_non_mobilisees(plan),
+    )
+
+
 def conduire_campagne(
     question_metier: str,
     df: pd.DataFrame,
@@ -101,25 +140,26 @@ def conduire_campagne(
     Un plan hors contrat leve et arrete tout : sans plan, il n'y a rien a
     executer, et aucun appel a l'analyste n'a encore ete paye.
     """
-    profil = build_profile(df)
-    plan = planifier(question_metier, profil, appeler_planificateur, logger)
+    plan = planifier(question_metier, build_profile(df), appeler_planificateur, logger)
+    return executer_plan(question_metier, plan, df, fabriquer_appel_analyste, logger)
 
-    issues = [
-        traiter_sous_question(
-            numero, sous_question, df, fabriquer_appel_analyste(numero), logger
-        )
-        for numero, sous_question in enumerate(plan.sous_questions, start=1)
-    ]
 
-    abouties = sum(1 for issue in issues if issue.statut == "succes")
-    logger.log("campagne_terminee", abouties=abouties, total=len(issues))
-
-    return ResultatCampagne(
-        question_metier=question_metier,
-        plan=plan,
-        issues=issues,
-        colonnes_inventees=colonnes_inventees(
-            plan, [colonne["nom"] for colonne in profil["colonnes"]]
-        ),
-        variables_non_mobilisees=variables_non_mobilisees(plan),
+def rejouer_plan(
+    campagne_source: ResultatCampagne,
+    df: pd.DataFrame,
+    fabriquer_appel_analyste: FabriqueAppel,
+    logger: RunLogger,
+) -> ResultatCampagne:
+    """Rejoue le plan d'une campagne passee, sans rien reprendre de ses resultats."""
+    logger.log(
+        "plan_rejoue",
+        question_metier=campagne_source.question_metier,
+        n_sous_questions=len(campagne_source.plan.sous_questions),
+    )
+    return executer_plan(
+        campagne_source.question_metier,
+        campagne_source.plan,
+        df,
+        fabriquer_appel_analyste,
+        logger,
     )
