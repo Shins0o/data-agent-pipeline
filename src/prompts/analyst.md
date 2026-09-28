@@ -28,6 +28,13 @@ qui leve.
 `resultat` peut etre un scalaire, une Series ou un DataFrame. Rends la
 reponse a la question, pas un tableau intermediaire.
 
+Quand la question demande lequel a la valeur la plus haute ou la plus
+basse, rends le haut du classement avec ses valeurs, pas le seul premier :
+les cinq premiers, ou tous si le groupe en compte moins. Un premier isole
+ne dit pas s'il est net ou a egalite avec les suivants. Si la valeur de
+tete est partagee, dis-le dans `limites` : le premier affiche ne l'est
+alors que par l'ordre du tri, qui n'est pas stable par defaut en pandas.
+
 ## Les regles qui font foi
 
 Le schema fourni est la seule autorite sur les colonnes : noms exacts, a la

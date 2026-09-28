@@ -100,6 +100,22 @@ def extraire_nombres(texte: str) -> list[float]:
     return [float(brut) for brut in MOTIF_NOMBRE.findall(texte)]
 
 
+def _nombres_rattaches(libelle: str, valeur_rendue: str) -> list[float]:
+    """Les nombres qu'un libelle attendu a le droit de justifier.
+
+    Ceux de sa ligne, quand elle en porte : dans un classement, la valeur
+    attendue doit etre sur la ligne du libelle attendu, pas n'importe ou
+    dans le tableau. Sinon tous les nombres du rendu, parce qu'une Series
+    rendue en enregistrement met le libelle et la valeur sur deux lignes :
+    "genre   Early Access" puis "prix_median   6.39".
+    """
+    lignes = [
+        ligne for ligne in valeur_rendue.splitlines() if libelle.lower() in ligne.lower()
+    ]
+    nombres_de_ligne = [n for ligne in lignes for n in extraire_nombres(ligne)]
+    return nombres_de_ligne or extraire_nombres(valeur_rendue)
+
+
 def comparer(
     reference: QuestionReference, valeur_rendue: str
 ) -> tuple[list[str], list[float]]:
@@ -108,6 +124,15 @@ def comparer(
     Deux listes vides valent `correct`. Rendre ce qui manque plutot qu'un
     booleen est ce qui permet au rapport de dire pourquoi une reponse est
     refusee, et a un humain de trancher quand le refus est discutable.
+
+    Quand la question attend un libelle, la valeur attendue se cherche sur
+    la ligne de ce libelle. Depuis que l'analyste rend le haut d'un
+    classement, chercher partout faisait passer une valeur voisine : sur q3,
+    Indie a 0.826 tombe dans la tolerance de 0.83 attendu pour Casual. Le
+    controle ne portait plus sur la bonne ligne.
+
+    Ce que ce controle ne verifie toujours pas : que le libelle attendu soit
+    en tete du classement rendu.
     """
     rendu = valeur_rendue.lower()
     libelles_manquants = [
@@ -116,7 +141,15 @@ def comparer(
         if libelle.lower() not in rendu
     ]
 
-    nombres = extraire_nombres(valeur_rendue)
+    if reference.libelles_attendus:
+        nombres = [
+            n
+            for libelle in reference.libelles_attendus
+            for n in _nombres_rattaches(libelle, valeur_rendue)
+        ]
+    else:
+        nombres = extraire_nombres(valeur_rendue)
+
     valeurs_manquantes = [
         attendue
         for attendue in reference.valeurs_attendues

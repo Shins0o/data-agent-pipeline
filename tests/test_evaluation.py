@@ -146,3 +146,41 @@ def test_sortie_hors_contrat_ne_fait_pas_tomber_la_campagne(df, logger):
     assert verdict.verdict == "hors_contrat"
     assert verdict.tentatives == 0
     assert verdict.valeur_rendue is None
+
+
+# --- rendus reels du 21 septembre, classements a cinq lignes -------------------
+
+CLASSEMENT_Q3 = (
+    "           review_ratio_median  n_jeux\n"
+    "genre                                 \n"
+    "Casual                0.833333   34092\n"
+    "Indie                 0.826087   59383\n"
+    "Adventure             0.813953   33684"
+)
+
+
+def test_dans_un_classement_la_valeur_se_cherche_sur_la_ligne_du_libelle():
+    reference = reference_de_test(
+        libelles_attendus=("Casual",), valeurs_attendues=(0.83,), tolerance=0.013
+    )
+    assert comparer(reference, CLASSEMENT_Q3) == ([], [])
+
+
+def test_une_valeur_voisine_sur_une_autre_ligne_ne_suffit_plus():
+    """Indie a 0.826 tombe dans la tolerance de 0.83 : il ne doit pas justifier Casual."""
+    faux = CLASSEMENT_Q3.replace("Casual                0.833333", "Casual                0.700000")
+    reference = reference_de_test(
+        libelles_attendus=("Casual",), valeurs_attendues=(0.83,), tolerance=0.013
+    )
+    assert comparer(reference, faux) == ([], [0.83])
+
+
+def test_une_series_rendue_en_enregistrement_reste_acceptee():
+    """Libelle et valeur sur deux lignes : le format du premier run d'evaluation."""
+    reference = reference_de_test(
+        libelles_attendus=("Early Access",), valeurs_attendues=(6.39,), tolerance=0.002
+    )
+    assert comparer(reference, "genre          Early Access\nprix_median            6.39") == (
+        [],
+        [],
+    )
