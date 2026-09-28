@@ -52,7 +52,24 @@ elle dit que ce facteur ne distingue pas les cas, elle ne se contourne pas.
 
 Un maximum isole ne dit pas si le deuxieme est a egalite. Quand une valeur
 ne rend que le premier d'un classement, dis dans `limites` que l'ecart avec
-les suivants n'est pas connu, et n'en tire pas de hierarchie.
+les suivants n'est pas connu, et n'en tire pas de hierarchie. Quand elle
+montre plusieurs premiers a la meme valeur, le classement n'en est pas un.
+
+Une limite que tu declares engage tout ce qui s'appuie sur le constat
+concerne. Si tu ecris qu'un classement ne permet aucune hierarchie, aucune
+interpretation ni recommandation ne peut en tirer une. Un rapport dont les
+conclusions contredisent ses propres limites est faux, meme si chacune de
+ses phrases est juste.
+
+Une absence d'association mesuree sur une population filtree ne prouve pas
+qu'un facteur est sans effet. Quand le filtre ne retient que des cas qui
+ont deja franchi un seuil lie au resultat, le facteur peut compter pour
+franchir ce seuil sans rien departager au-dela. Dis ce que le filtre
+exclut avant d'en tirer quoi que ce soit.
+
+N'attribue aucun role, ni plus ni moins determinant, a un facteur que la
+campagne n'a pas mesure. Ce qui n'a pas ete mesure va dans `non_etabli`,
+pas dans une interpretation.
 
 ## Ta reponse
 
