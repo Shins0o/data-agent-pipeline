@@ -139,8 +139,14 @@ def conduire_campagne(
 
     Un plan hors contrat leve et arrete tout : sans plan, il n'y a rien a
     executer, et aucun appel a l'analyste n'a encore ete paye.
+
+    Le profil est trace tel que le planificateur l'a lu : c'est l'entree qui
+    explique son plan, et le seul endroit ou relire d'ou vient un chiffre
+    qu'il aurait repris dans sa prose.
     """
-    plan = planifier(question_metier, build_profile(df), appeler_planificateur, logger)
+    profil = build_profile(df)
+    logger.log("profil", profil=profil)
+    plan = planifier(question_metier, profil, appeler_planificateur, logger)
     return executer_plan(question_metier, plan, df, fabriquer_appel_analyste, logger)
 
 
@@ -150,12 +156,17 @@ def rejouer_plan(
     fabriquer_appel_analyste: FabriqueAppel,
     logger: RunLogger,
 ) -> ResultatCampagne:
-    """Rejoue le plan d'une campagne passee, sans rien reprendre de ses resultats."""
+    """Rejoue le plan d'une campagne passee, sans rien reprendre de ses resultats.
+
+    Le profil est trace ici aussi : les donnees ont pu changer depuis la
+    campagne source, et c'est sur celles du rejeu que les analyses tournent.
+    """
     logger.log(
         "plan_rejoue",
         question_metier=campagne_source.question_metier,
         n_sous_questions=len(campagne_source.plan.sous_questions),
     )
+    logger.log("profil", profil=build_profile(df))
     return executer_plan(
         campagne_source.question_metier,
         campagne_source.plan,

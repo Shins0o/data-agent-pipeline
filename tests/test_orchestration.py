@@ -190,6 +190,22 @@ def test_la_trace_distingue_le_plan_de_campagne_des_plans_de_l_analyste(df, logg
     assert trace[-1] == "campagne_terminee"
 
 
+def test_le_profil_lu_par_le_planificateur_est_dans_la_trace(df, logger):
+    """Sans lui, un chiffre repris dans hors_portee ne se retrace pas."""
+    conduire_campagne(
+        "pourquoi",
+        df,
+        lambda _: plan_campagne(3),
+        analyste_scripte({n: [plan_analyste(CODE_JUSTE)] for n in (1, 2, 3)}),
+        logger,
+    )
+    lignes = [json.loads(l) for l in logger.trace.read_text(encoding="utf-8").splitlines()]
+    profils = [l["profil"] for l in lignes if l["etape"] == "profil"]
+
+    assert etapes(logger).index("profil") < etapes(logger).index("plan_campagne")
+    assert [c["nom"] for c in profils[0]["colonnes"]] == list(df.columns)
+
+
 def test_le_resultat_de_campagne_se_serialise_et_se_relit(df, logger):
     """campagne.json est l'entree du synthetiseur : il doit se relire tel quel."""
     from schemas.contracts import ResultatCampagne
@@ -240,7 +256,7 @@ def test_rejouer_un_plan_n_appelle_pas_le_planificateur(df, logger, tmp_path):
     )
 
     trace = etapes(nouveau_logger)
-    assert trace[0] == "plan_rejoue"
+    assert trace[:2] == ["plan_rejoue", "profil"]
     assert "plan_campagne" not in trace
     assert rejouee.plan == source.plan
 
