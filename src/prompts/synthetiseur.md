@@ -26,6 +26,13 @@ qu'elle devait etablir va dans `non_etabli`.
 resultats. Les chiffres qu'ils contiennent n'ont ete calcules par personne :
 ne les reprends pas.
 
+`qualite_colonnes` donne, pour les colonnes que le plan cite et qui ont des
+valeurs manquantes, leur nombre (`n_manquants`) et leur part
+(`taux_manquant`), calcules sur les donnees. Ce sont des valeurs au meme
+titre que celles des sous-questions. Une limite sur des valeurs manquantes
+les cite, un chiffre par colonne, et jamais sous forme de borne : "plus de
+96 %" n'est pas un arrondi de 0.966.
+
 ## Les trois niveaux
 
 Un constat dit ce que la donnee montre, et rien de plus. Il cite les
