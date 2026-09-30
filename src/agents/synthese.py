@@ -55,12 +55,14 @@ class SyntheseVerifiee:
     """
 
     rapport: RapportFinal
+    qualite_colonnes: dict[str, dict]
     chiffres_non_sources: list[ChiffreNonSource]
     constats_sans_donnee: dict[str, list[int]]
 
     def en_dict(self) -> dict:
         return {
             "rapport": self.rapport.model_dump(),
+            "qualite_colonnes": self.qualite_colonnes,
             "chiffres_non_sources": [asdict(c) for c in self.chiffres_non_sources],
             "constats_sans_donnee": self.constats_sans_donnee,
         }
@@ -85,7 +87,7 @@ def _vue_issue(issue: IssueSousQuestion) -> dict:
     return vue
 
 
-def vue_pour_synthetiseur(campagne: ResultatCampagne) -> dict:
+def vue_pour_synthetiseur(campagne: ResultatCampagne, qualite_colonnes: dict[str, dict]) -> dict:
     """Ce que le synthetiseur voit de la campagne, et ce qu'il ne voit pas.
 
     Pas le code genere : il ecrit des phrases, pas du pandas, et le code
@@ -95,11 +97,15 @@ def vue_pour_synthetiseur(campagne: ResultatCampagne) -> dict:
     Rien d'une sous-question echouee hormis son statut. Il n'y a pas de
     valeur a lui montrer, et lui montrer les erreurs l'inviterait a en
     deviner le resultat.
+
+    La fiche qualite, pour qu'une limite sur les donnees puisse etre chiffree
+    avec un nombre que le controle sait retrouver.
     """
     return {
         "question_metier": campagne.question_metier,
         "lecture_question": campagne.plan.lecture_question,
         "hors_portee": campagne.plan.hors_portee,
+        "qualite_colonnes": qualite_colonnes,
         "sous_questions": [_vue_issue(issue) for issue in campagne.issues],
     }
 
@@ -156,6 +162,7 @@ def valider_rapport(texte_brut: str) -> RapportFinal:
 
 def synthetiser(
     campagne: ResultatCampagne,
+    qualite_colonnes: dict[str, dict],
     appeler_modele: AppelModele,
     logger: RunLogger,
 ) -> SyntheseVerifiee:
@@ -170,8 +177,11 @@ def synthetiser(
         n_sous_questions=len(campagne.issues),
         n_abouties=sum(1 for issue in campagne.issues if issue.statut == "succes"),
     )
+    logger.log("fiche_qualite", colonnes=qualite_colonnes)
 
-    reponse_brute = appeler_modele(construire_prompt(vue_pour_synthetiseur(campagne)))
+    reponse_brute = appeler_modele(
+        construire_prompt(vue_pour_synthetiseur(campagne, qualite_colonnes))
+    )
     logger.log("synthese_brute", texte=reponse_brute)
 
     rapport = valider_rapport(reponse_brute)
@@ -183,7 +193,7 @@ def synthetiser(
         n_recommandations=len(rapport.recommandations),
     )
 
-    non_sources = chiffres_non_sources(rapport, campagne)
+    non_sources = chiffres_non_sources(rapport, campagne, qualite_colonnes)
     if non_sources:
         logger.log("chiffres_non_sources", detail=[asdict(c) for c in non_sources])
 
@@ -191,4 +201,4 @@ def synthetiser(
     if sans_donnee:
         logger.log("constats_sans_donnee", detail=sans_donnee)
 
-    return SyntheseVerifiee(rapport, non_sources, sans_donnee)
+    return SyntheseVerifiee(rapport, qualite_colonnes, non_sources, sans_donnee)

@@ -89,6 +89,11 @@ CAMPAGNE = campagne(
 )
 
 
+# Fiche qualite vide, passee explicitement : les controles qui ne portent pas
+# sur les manquants n'ont pas a en dependre.
+SANS_FICHE: dict[str, dict] = {}
+
+
 def rapport(**surcharges) -> RapportFinal:
     champs = {
         "reponse_courte": "Massively Multiplayer place 17,6 % de ses jeux au sommet.",

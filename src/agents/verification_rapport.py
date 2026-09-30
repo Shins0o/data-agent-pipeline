@@ -14,7 +14,9 @@ Ce qui compte comme source, et ce qui n'en est pas une :
 - les valeurs rendues par l'analyste, calculees sur les donnees reelles ;
 - le texte des sous-questions, parce qu'il porte les seuils ("500 jeux",
   "90e percentile") qui sont des definitions et non des mesures ;
-- les numeros des sous-questions, parce qu'un rapport cite sa structure.
+- les numeros des sous-questions, parce qu'un rapport cite sa structure ;
+- la fiche qualite des colonnes citees par le plan, reprise du profil :
+  des comptes de manquants calcules par le code, pas par un modele.
 Ne sont PAS des sources : `lecture_question`, `hors_portee` et les `limites`
 de l'analyste. C'est de la prose de modele. Les accepter blanchirait
 exactement les chiffres qu'on cherche a attraper, comme le 96,6 % ecrit par
@@ -184,6 +186,15 @@ def sources_de_campagne(campagne: ResultatCampagne) -> list[float]:
     return sources
 
 
+def sources_de_qualite(qualite_colonnes: dict[str, dict]) -> list[float]:
+    """Les comptes et taux de manquants de la fiche qualite."""
+    return [
+        float(valeur)
+        for colonne in qualite_colonnes.values()
+        for valeur in (colonne["n_manquants"], colonne["taux_manquant"])
+    ]
+
+
 def champs_du_rapport(rapport: RapportFinal) -> list[tuple[str, str]]:
     """Chaque texte du rapport, avec de quoi le retrouver quand il est signale."""
     champs = [("reponse courte", rapport.reponse_courte)]
@@ -207,10 +218,16 @@ def _extrait(texte: str, nombre: NombreEcrit) -> str:
 
 
 def chiffres_non_sources(
-    rapport: RapportFinal, campagne: ResultatCampagne
+    rapport: RapportFinal,
+    campagne: ResultatCampagne,
+    qualite_colonnes: dict[str, dict],
 ) -> list[ChiffreNonSource]:
-    """Les nombres du rapport qu'aucune source de la campagne ne justifie."""
-    sources = sources_de_campagne(campagne)
+    """Les nombres du rapport qu'aucune source ne justifie.
+
+    `qualite_colonnes` est requis, meme vide : un appelant qui l'oublie doit
+    le voir, pas obtenir en silence un controle plus severe que prevu.
+    """
+    sources = sources_de_campagne(campagne) + sources_de_qualite(qualite_colonnes)
     return [
         ChiffreNonSource(
             champ=champ,

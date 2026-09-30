@@ -20,11 +20,19 @@ import json
 import sys
 from pathlib import Path
 
+from agents.profiling import build_profile
 from agents.rendu_rapport import rendre_markdown
 from agents.sdk_abonnement import interroger, verifier_environnement
-from agents.synthese import SyntheseVerifiee, charger_prompt_systeme, synthetiser
+from agents.synthese import (
+    SyntheseVerifiee,
+    charger_prompt_systeme,
+    colonnes_citees,
+    fiche_qualite,
+    synthetiser,
+)
 from agents.usage import UsageTracker
 from schemas.contracts import ResultatCampagne
+from tools.dataset import add_derived_columns, load_games
 from utils.run_logger import RUNS_DIR, RunLogger
 
 MODEL = "claude-sonnet-5"
@@ -82,6 +90,14 @@ def main() -> None:
     campagne = ResultatCampagne.model_validate_json(chemin.read_text(encoding="utf-8"))
     print(f"Campagne lue : {chemin}")
 
+    # Le dataset est recharge pour la seule fiche qualite : aucune analyse ne
+    # tourne ici. Meme chargement que la campagne, donc memes comptes.
+    df = add_derived_columns(load_games())
+    qualite_colonnes = fiche_qualite(
+        build_profile(df), colonnes_citees(campagne.plan, list(df.columns))
+    )
+    print(f"Fiche qualite : {len(qualite_colonnes)} colonnes citees avec des manquants")
+
     prompt_systeme = charger_prompt_systeme()
     tracker = UsageTracker()
     logger = RunLogger()
@@ -90,7 +106,7 @@ def main() -> None:
     def appeler_modele(prompt: str) -> str:
         return asyncio.run(interroger(prompt, prompt_systeme, MODEL, tracker, "05_synthese"))
 
-    synthese = synthetiser(campagne, appeler_modele, logger)
+    synthese = synthetiser(campagne, qualite_colonnes, appeler_modele, logger)
 
     (logger.dossier / "synthese.json").write_text(
         json.dumps(synthese.en_dict(), indent=2, ensure_ascii=False), encoding="utf-8"
@@ -102,6 +118,7 @@ def main() -> None:
         modele=MODEL,
         voie=VOIE,
         campagne_source=str(chemin.parent),
+        n_colonnes_fiche_qualite=len(qualite_colonnes),
         n_constats=len(synthese.rapport.constats),
         n_chiffres_non_sources=len(synthese.chiffres_non_sources),
         n_constats_sans_donnee=len(synthese.constats_sans_donnee),

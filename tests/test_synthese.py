@@ -22,7 +22,7 @@ from agents.synthese import (
     vue_pour_synthetiseur,
 )
 from agents.synthese_agent import campagne_a_lire
-from fabriques import CAMPAGNE, rapport
+from fabriques import CAMPAGNE, SANS_FICHE, rapport
 from utils.run_logger import RunLogger
 
 
@@ -47,7 +47,7 @@ def etapes(logger: RunLogger) -> list[str]:
 
 
 def test_le_synthetiseur_voit_les_valeurs_et_les_limites_d_une_analyse_aboutie():
-    vue = vue_pour_synthetiseur(CAMPAGNE)["sous_questions"][2]
+    vue = vue_pour_synthetiseur(CAMPAGNE, SANS_FICHE)["sous_questions"][2]
 
     assert vue["valeur"] == "14598"
     assert vue["limites"] == "owners_mid est un proxy"
@@ -56,7 +56,7 @@ def test_le_synthetiseur_voit_les_valeurs_et_les_limites_d_une_analyse_aboutie()
 
 def test_le_synthetiseur_ne_voit_d_une_sous_question_echouee_que_son_statut():
     """Lui montrer les erreurs l'inviterait a deviner le resultat."""
-    vue = vue_pour_synthetiseur(CAMPAGNE)["sous_questions"][0]
+    vue = vue_pour_synthetiseur(CAMPAGNE, SANS_FICHE)["sous_questions"][0]
 
     assert vue["statut"] == "hors_contrat"
     assert "valeur" not in vue
@@ -64,7 +64,7 @@ def test_le_synthetiseur_ne_voit_d_une_sous_question_echouee_que_son_statut():
 
 def test_le_code_genere_n_entre_pas_dans_le_prompt():
     """Il ecrit des phrases, pas du pandas : le code doublerait le prompt pour rien."""
-    prompt = construire_prompt(vue_pour_synthetiseur(CAMPAGNE))
+    prompt = construire_prompt(vue_pour_synthetiseur(CAMPAGNE, SANS_FICHE))
 
     assert "resultat = 1" not in prompt
     assert "14598" in prompt
@@ -74,16 +74,22 @@ def test_le_code_genere_n_entre_pas_dans_le_prompt():
 
 
 def test_une_synthese_propre_ne_signale_rien(logger):
-    synthese = synthetiser(CAMPAGNE, modele_rendant(), logger)
+    synthese = synthetiser(CAMPAGNE, SANS_FICHE, modele_rendant(), logger)
 
     assert synthese.chiffres_non_sources == []
     assert synthese.constats_sans_donnee == {}
-    assert etapes(logger) == ["synthese_demandee", "synthese_brute", "rapport"]
+    assert etapes(logger) == [
+        "synthese_demandee",
+        "fiche_qualite",
+        "synthese_brute",
+        "rapport",
+    ]
 
 
 def test_un_chiffre_recopie_du_hors_portee_est_signale_et_trace(logger):
     synthese = synthetiser(
         CAMPAGNE,
+        SANS_FICHE,
         modele_rendant(limites=["Metacritic score vaut 0 pour 96,6 % des jeux."]),
         logger,
     )
@@ -95,6 +101,7 @@ def test_un_chiffre_recopie_du_hors_portee_est_signale_et_trace(logger):
 def test_un_constat_sans_donnee_est_signale_et_trace(logger):
     synthese = synthetiser(
         CAMPAGNE,
+        SANS_FICHE,
         modele_rendant(
             constats=[
                 {"id": "C1", "enonce": "Le sommet concentre tout.", "sous_questions": [1]},
@@ -110,12 +117,12 @@ def test_un_constat_sans_donnee_est_signale_et_trace(logger):
 
 def test_un_rapport_hors_contrat_arrete_la_synthese(logger):
     with pytest.raises(ValidationError):
-        synthetiser(CAMPAGNE, lambda _: '{"reponse_courte": "x"}', logger)
+        synthetiser(CAMPAGNE, SANS_FICHE, lambda _: '{"reponse_courte": "x"}', logger)
 
 
 def test_la_synthese_se_serialise(logger):
     synthese = synthetiser(
-        CAMPAGNE, modele_rendant(limites=["Metacritic vaut 0 pour 96,6 % des jeux."]), logger
+        CAMPAGNE, SANS_FICHE, modele_rendant(limites=["Metacritic vaut 0 pour 96,6 % des jeux."]), logger
     )
 
     relue = json.loads(json.dumps(synthese.en_dict(), ensure_ascii=False))
@@ -127,7 +134,7 @@ def test_la_synthese_se_serialise(logger):
 
 
 def rendu(logger, **surcharges) -> str:
-    return rendre_markdown(synthetiser(CAMPAGNE, modele_rendant(**surcharges), logger), CAMPAGNE)
+    return rendre_markdown(synthetiser(CAMPAGNE, SANS_FICHE, modele_rendant(**surcharges), logger), CAMPAGNE)
 
 
 def test_les_controles_passent_avant_le_rapport(logger):
@@ -228,3 +235,11 @@ def test_la_fiche_reprend_le_profil_et_omet_les_colonnes_completes():
 def test_la_fiche_ignore_les_colonnes_non_citees():
     df = pd.DataFrame({"Score rank": [None, None], "Notes": [None, "x"]})
     assert list(fiche_qualite(build_profile(df), ["Score rank"])) == ["Score rank"]
+
+
+def test_la_fiche_qualite_est_montree_au_synthetiseur_et_gardee_avec_le_rapport(logger):
+    fiche = {"Score rank": {"n_manquants": 4, "taux_manquant": 1.0}}
+
+    assert vue_pour_synthetiseur(CAMPAGNE, fiche)["qualite_colonnes"] == fiche
+    synthese = synthetiser(CAMPAGNE, fiche, modele_rendant(), logger)
+    assert synthese.en_dict()["qualite_colonnes"] == fiche

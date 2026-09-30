@@ -6,16 +6,19 @@ campagnes et les rapports viennent de tests/fabriques.py.
 
 from __future__ import annotations
 
+import pandas as pd
 import pytest
 from pydantic import ValidationError
 
+from agents.profiling import build_profile
+from agents.synthese import fiche_qualite
 from agents.verification_rapport import (
     chiffres_non_sources,
     constats_sans_donnee,
     correspond,
     lire_nombres,
 )
-from fabriques import CAMPAGNE, rapport
+from fabriques import CAMPAGNE, SANS_FICHE, rapport
 
 
 # --- contrat : la chaine de preuve --------------------------------------------
@@ -129,13 +132,13 @@ def test_un_demi_n_est_pas_arrondi_au_pair():
 
 
 def test_un_rapport_entierement_source_ne_signale_rien():
-    assert chiffres_non_sources(rapport(), CAMPAGNE) == []
+    assert chiffres_non_sources(rapport(), CAMPAGNE, SANS_FICHE) == []
 
 
 def test_le_96_6_recopie_du_hors_portee_est_signale():
     """Le cas reel : un chiffre ecrit par le planificateur sans l'avoir calcule."""
     signales = chiffres_non_sources(
-        rapport(limites=["Metacritic score vaut 0 pour 96,6 % des jeux."]), CAMPAGNE
+        rapport(limites=["Metacritic score vaut 0 pour 96,6 % des jeux."]), CAMPAGNE, SANS_FICHE
     )
 
     assert [(s.champ, s.nombre) for s in signales] == [("limite 1", "96,6")]
@@ -145,7 +148,7 @@ def test_le_96_6_recopie_du_hors_portee_est_signale():
 def test_un_seuil_ecrit_dans_une_sous_question_est_une_source():
     """500 jeux est une definition posee par le plan, pas une mesure."""
     assert chiffres_non_sources(
-        rapport(limites=["Seuls les genres d'au moins 500 jeux sont retenus."]), CAMPAGNE
+        rapport(limites=["Seuls les genres d'au moins 500 jeux sont retenus."]), CAMPAGNE, SANS_FICHE
     ) == []
 
 
@@ -158,6 +161,7 @@ def test_un_chiffre_invente_dans_un_constat_est_signale():
             ]
         ),
         CAMPAGNE,
+        SANS_FICHE,
     )
     assert [(s.champ, s.nombre) for s in signales] == [("constat C1", "42,3")]
 
@@ -181,3 +185,48 @@ def test_un_constat_citant_une_sous_question_inexistante_est_signale():
         CAMPAGNE,
     )
     assert signales == {"C1": [9]}
+
+
+# --- la fiche qualite comme source -----------------------------------------------
+
+
+def fiche_metacritic() -> dict[str, dict]:
+    """Taux reel de Metacritic url (0.966 dans le profil), sur 1 000 lignes."""
+    df = pd.DataFrame({"Metacritic url": [None] * 966 + ["https://x"] * 34})
+    return fiche_qualite(build_profile(df), ["Metacritic url"])
+
+
+def test_un_taux_repris_de_la_fiche_qualite_est_source():
+    assert chiffres_non_sources(
+        rapport(limites=["Metacritic url manque pour 96,6 % des jeux."]),
+        CAMPAGNE,
+        fiche_metacritic(),
+    ) == []
+
+
+def test_un_taux_arrondi_de_la_fiche_qualite_est_source():
+    assert chiffres_non_sources(
+        rapport(limites=["Metacritic url manque pour 97 % des jeux."]),
+        CAMPAGNE,
+        fiche_metacritic(),
+    ) == []
+
+
+def test_une_borne_n_est_pas_un_arrondi_meme_avec_la_fiche():
+    """La phrase reelle du 21 septembre. "Plus de 96" n'arrondit pas 96,6.
+
+    Le controle ne lit pas les bornes : il signale, un humain relit. Et la
+    phrase melange deux colonnes, "manquantes ou nulles", dont une seule a
+    un compte dans la fiche.
+    """
+    signales = chiffres_non_sources(
+        rapport(
+            non_etabli=[
+                "La qualite critique n'a pas pu etre analysee, ces colonnes etant "
+                "quasiment inutilisables (valeurs manquantes ou nulles a plus de 96%)."
+            ]
+        ),
+        CAMPAGNE,
+        fiche_metacritic(),
+    )
+    assert [s.nombre for s in signales] == ["96"]
