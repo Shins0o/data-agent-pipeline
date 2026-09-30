@@ -8,11 +8,19 @@ from __future__ import annotations
 
 import json
 
+import pandas as pd
 import pytest
 from pydantic import ValidationError
 
 from agents.rendu_rapport import MARQUE, rendre_markdown
-from agents.synthese import construire_prompt, synthetiser, vue_pour_synthetiseur
+from agents.profiling import build_profile
+from agents.synthese import (
+    colonnes_citees,
+    construire_prompt,
+    fiche_qualite,
+    synthetiser,
+    vue_pour_synthetiseur,
+)
 from agents.synthese_agent import campagne_a_lire
 from fabriques import CAMPAGNE, rapport
 from utils.run_logger import RunLogger
@@ -167,3 +175,56 @@ def test_sans_argument_la_campagne_la_plus_recente_est_lue(tmp_path):
 def test_un_dossier_sans_campagne_est_refuse(tmp_path):
     with pytest.raises(SystemExit):
         campagne_a_lire([str(tmp_path)])
+
+
+# --- fiche qualite : les manquants des colonnes dont le plan parle ------------
+
+# Extrait reel du plan de la campagne du 21 septembre (runs/20260921-122758).
+HORS_PORTEE_REELLE = (
+    "owners_mid n'est qu'une estimation par tranche et non un chiffre de ventes, "
+    "et Price est le prix actuel. Metacritic score et Metacritic url sont quasi "
+    "inutilisables (respectivement presque toujours a 0 et manquants a 96.6%), "
+    "et Score rank est manquant a 100%."
+)
+
+COLONNES = ["AppID", "Name", "Price", "Metacritic score", "Metacritic url", "Score rank", "Genres", "owners_mid"]
+
+
+def plan_avec(hors_portee: str):
+    return CAMPAGNE.plan.model_copy(update={"hors_portee": hors_portee})
+
+
+def test_les_colonnes_ecartees_dans_la_prose_du_plan_sont_citees():
+    assert colonnes_citees(plan_avec(HORS_PORTEE_REELLE), COLONNES) == [
+        "Price",
+        "Metacritic score",
+        "Metacritic url",
+        "Score rank",
+        "owners_mid",
+    ]
+
+
+def test_un_nom_de_colonne_se_cherche_en_mot_entier():
+    """"Prices" ne cite pas la colonne Price."""
+    assert colonnes_citees(plan_avec("Prices vary a lot"), ["Price"]) == []
+
+
+def test_la_fiche_reprend_le_profil_et_omet_les_colonnes_completes():
+    df = pd.DataFrame(
+        {
+            "Metacritic url": [None, None, None, "https://x"],
+            "Score rank": [None] * 4,
+            "Price": [0.0, 4.99, 9.99, 19.99],
+        }
+    )
+    fiche = fiche_qualite(build_profile(df), ["Metacritic url", "Score rank", "Price"])
+
+    assert fiche == {
+        "Metacritic url": {"n_manquants": 3, "taux_manquant": 0.75},
+        "Score rank": {"n_manquants": 4, "taux_manquant": 1.0},
+    }
+
+
+def test_la_fiche_ignore_les_colonnes_non_citees():
+    df = pd.DataFrame({"Score rank": [None, None], "Notes": [None, "x"]})
+    assert list(fiche_qualite(build_profile(df), ["Score rank"])) == ["Score rank"]

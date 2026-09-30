@@ -19,6 +19,7 @@ des rapports. On mesure d'abord.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Callable
@@ -31,7 +32,12 @@ from agents.verification_rapport import (
     chiffres_non_sources,
     constats_sans_donnee,
 )
-from schemas.contracts import IssueSousQuestion, RapportFinal, ResultatCampagne
+from schemas.contracts import (
+    IssueSousQuestion,
+    PlanCampagne,
+    RapportFinal,
+    ResultatCampagne,
+)
 from tools import PROJECT_ROOT
 from utils.run_logger import RunLogger
 
@@ -95,6 +101,41 @@ def vue_pour_synthetiseur(campagne: ResultatCampagne) -> dict:
         "lecture_question": campagne.plan.lecture_question,
         "hors_portee": campagne.plan.hors_portee,
         "sous_questions": [_vue_issue(issue) for issue in campagne.issues],
+    }
+
+
+def colonnes_citees(plan: PlanCampagne, colonnes_du_dataset: list[str]) -> list[str]:
+    """Les colonnes dont le plan parle, dans l'ordre du dataset.
+
+    Celles qu'il decoupe (colonnes_necessaires, variables_cles), et celles
+    qu'il nomme dans sa prose : c'est la que le planificateur ecarte une
+    colonne inutilisable, "Metacritic url" dans hors_portee par exemple.
+    Un nom se cherche en mot entier, pour que "Price" ne soit pas trouve
+    dans "Prices" ni "Name" dans "Names".
+    """
+    decoupees = {c for sq in plan.sous_questions for c in sq.colonnes_necessaires}
+    decoupees |= set(plan.variables_cles)
+    prose = f"{plan.lecture_question}\n{plan.hors_portee}"
+
+    def nommee(colonne: str) -> bool:
+        return re.search(rf"(?<!\w){re.escape(colonne)}(?!\w)", prose) is not None
+
+    return [c for c in colonnes_du_dataset if c in decoupees or nommee(c)]
+
+
+def fiche_qualite(profil: dict, colonnes: list[str]) -> dict[str, dict]:
+    """Les manquants des colonnes citees, repris tels quels du profil.
+
+    Aucun calcul ici : le profil est la seule source des comptes de
+    manquants, pour que le chiffre du rapport et celui que le planificateur
+    a lu soient le meme. Les colonnes completes sont omises : un 0 ne dit
+    rien au lecteur, et chaque source en plus rend le controle des chiffres
+    plus permissif.
+    """
+    return {
+        c["nom"]: {"n_manquants": c["n_manquants"], "taux_manquant": c["taux_manquant"]}
+        for c in profil["colonnes"]
+        if c["nom"] in colonnes and c["n_manquants"] > 0
     }
 
 
